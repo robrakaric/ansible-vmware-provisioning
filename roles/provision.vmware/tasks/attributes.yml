@@ -1,0 +1,30 @@
+---
+- name: Apply Custom Attributes to Virtual Machine(s)
+  # TODO: https://github.com/ansible/ansible/issues/63222 Open bug that requires VM name vs UUID
+  vmware_guest_custom_attributes:
+    datacenter: "{{ provision_vmware_datacenter }}"
+    name: "{{ item.instance.hw_name }}"
+    folder: "{{ provision_vmware_datacenter }}/vm/{{ provision_vmware_folder }}"
+    state: 'present'
+    attributes:
+      - name: "provision_awx_workflow_job_id"
+        value: "{{ awx_job_id | default(omit) }}"
+      - name: "provision_awx_requestor"
+        value: "{{ awx_user_name | default(omit) }}"
+      - name: "provision_awx_create_date"
+        value: "{{ ansible_date_time.iso8601 }}"
+  with_items: "{{ clone.results }}"
+  delegate_to: localhost
+  async: 300
+  poll: 0
+  register: attributes_async
+
+- name: Wait for Custom Attribute Application to Complete
+  async_status:
+    jid: "{{ item.ansible_job_id }}"
+  with_items: "{{ attributes_async.results }}"
+  until: attributes.finished
+  retries: 120
+  delegate_to: localhost
+  register: attributes
+...
