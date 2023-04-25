@@ -13,6 +13,7 @@
 
 - name: Create Configuration for Extra Disk(s)
   ansible.builtin.set_fact:
+    # Linter is mad here, but leave this as-is for readability.
     provision_disks:
       "{{ provision_disks +
       [{'size_gb': item ,
