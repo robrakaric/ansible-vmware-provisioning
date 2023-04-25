@@ -1,25 +1,26 @@
 ---
-- hosts: localhost
+- name: Provision Virtual Machines
+  hosts: localhost
   connection: local
   gather_facts: yes
 
   tasks:
 
   - name: Populate Resource Names from Ansible Tower Survey
-    set_fact:
+    ansible.builtin.set_fact:
       provision_resource_names: "{{ provision_resource_names_textarea.split('\n') }}"
     when: provision_resource_names_textarea is defined
   
   - name: Populate Extra Disks from Ansible Tower Survey
-    set_fact:
+    ansible.builtin.set_fact:
       provision_extra_disks: "{{ provision_extra_disks_textarea.split('\n') }}"
     when: provision_extra_disks_textarea is defined
 
   - name: Print Ansible Version
-    debug:
+    ansible.builtin.debug:
       msg: "{{ ansible_version }}"
 
   - name: Provision to Cloud Provider
-    include_role:
+    ansible.builtin.nclude_role:
       name: "provision.{{ provision_cloud_provider }}"
 ...

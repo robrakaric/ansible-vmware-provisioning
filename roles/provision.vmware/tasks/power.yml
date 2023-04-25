@@ -1,10 +1,10 @@
 ---
 - name: Power On Virtual Machine(s)
-  vmware_guest:
+  community.vmware.vmware_guest:
     uuid: "{{ item.instance.instance_uuid }}"
     use_instance_uuid: 'yes'
     state: 'poweredon'
-    wait_for_ip_address: yes
+    wait_for_ip_address: true
   with_items:
     - "{{ clone.results }}"
   delegate_to: localhost
@@ -13,7 +13,7 @@
   register: power_async
 
 - name: Wait For Virtual Machine(s) IP Address(es)
-  async_status:
+  ansible.builtin.async_status:
     jid: "{{ item.ansible_job_id }}"
   with_items: "{{ power_async.results }}"
   until: power.finished

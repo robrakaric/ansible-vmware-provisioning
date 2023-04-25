@@ -1,19 +1,19 @@
 ---
 - name: Clone Template
-  include_tasks: 'clone.yml'
+  ansible.builtin.include_tasks: 'clone.yml'
 
 - name: Configure Network
-  include_tasks: 'network.yml'
+  ansible.builtin.include_tasks: 'network.yml'
 
 - name: Configure Storage
-  include_tasks: 'disk.yml'
+  ansible.builtin.include_tasks: 'disk.yml'
 
 - name: Distribute Metadata
-  include_tasks: 'attributes.yml'
+  ansible.builtin.include_tasks: 'attributes.yml'
 
 - name: Power On Resource(s)
-  include_tasks: 'power.yml'
+  ansible.builtin.include_tasks: 'power.yml'
 
 - name: Return Provisioning Facts
-  include_tasks: 'facts.yml'
+  ansible.builtin.include_tasks: 'facts.yml'
 ...

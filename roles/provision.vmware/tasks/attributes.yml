@@ -1,7 +1,7 @@
 ---
 - name: Apply Custom Attributes to Virtual Machine(s)
   # TODO: https://github.com/ansible/ansible/issues/63222 Open bug that requires VM name vs UUID
-  vmware_guest_custom_attributes:
+  community.vmware.vmware_guest_custom_attributes:
     datacenter: "{{ provision_vmware_datacenter }}"
     name: "{{ item.instance.hw_name }}"
     folder: "{{ provision_vmware_datacenter }}/vm/{{ provision_vmware_folder }}"
@@ -20,7 +20,7 @@
   register: attributes_async
 
 - name: Wait for Custom Attribute Application to Complete
-  async_status:
+  ansible.builtin.async_status:
     jid: "{{ item.ansible_job_id }}"
   with_items: "{{ attributes_async.results }}"
   until: attributes.finished
