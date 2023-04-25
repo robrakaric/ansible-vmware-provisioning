@@ -1,14 +1,14 @@
 ---
 - name: Clone Virtual Machine(s) from Template
-  vmware_guest:
+  community.vmware.vmware_guest:
     state: 'poweredoff'
     name: "{{ item }}"
     annotation: "{{ provision_notes }}"
     template: "{{ provision_vmware_template }}"
     datacenter: "{{ provision_vmware_datacenter }}"
     folder: "{{ provision_vmware_datacenter }}/vm/{{ provision_vmware_folder }}"
-    cluster: "{{ provision_vmware_cluster | default (omit) }}"
-    esxi_hostname: "{{ provision_vmware_esxi_hostname | default (omit) }}"
+    cluster: "{{ provision_vmware_cluster | default(omit) }}"
+    esxi_hostname: "{{ provision_vmware_esxi_hostname | default(omit) }}"
     hardware:
       num_cpus: "{{ provision_cpus }}"
       memory_mb: "{{ provision_memory * 1024 }}"
@@ -27,7 +27,7 @@
   register: clone_async
 
 - name: Wait Until Virtual Machine Provisioning Completes
-  async_status:
+  ansible.builtin.async_status:
     jid: "{{ item.ansible_job_id }}"
   with_items: "{{ clone_async.results }}"
   until: clone.finished
@@ -35,6 +35,7 @@
   delegate_to: localhost
   register: clone
 
-- debug:
+- name: Display Clone Information
+  ansible.builtin.debug:
     msg: "{{ clone }}"
 ...

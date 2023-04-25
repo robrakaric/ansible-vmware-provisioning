@@ -1,14 +1,18 @@
 ---
+# TODO: Rewrite task to match updated module schema: https://docs.ansible.com/ansible/latest/collections/community/vmware/vmware_guest_network_module.html
 - name: Remove existing guest network adapter
-  vmware_guest_network:
+  community.vmware.vmware_guest_network:
     moid: "{{ item.instance.moid }}"
     datacenter: "{{ provision_vmware_datacenter }}"
-    cluster: "{{ provision_vmware_cluster | default (omit) }}"
-    esxi_hostname: "{{ provision_vmware_esxi_hostname | default (omit) }}"
+    cluster: "{{ provision_vmware_cluster | default(omit) }}"
+    esxi_hostname: "{{ provision_vmware_esxi_hostname | default(omit) }}"
+    # mac_address: Get from clone.results data
+    # state: absent
+    # remove the 'networks' parameter after mac addresses are populated from clone.results, if present. If not, extract it from an info/facts module
     networks:
       - state: absent
         label: "Network adapter 1"
-    validate_certs: no
+    validate_certs: false
   delegate_to: localhost
   with_items: "{{ clone.results }}"
   async: 300
@@ -16,7 +20,7 @@
   register: network_remove_async
 
 - name: Wait until existing guest network adapter is removed
-  async_status:
+  ansible.builtin.async_status:
     jid: "{{ item.ansible_job_id }}"
   with_items: "{{ network_remove_async.results }}"
   until: network_remove.finished
@@ -25,19 +29,18 @@
   register: network_remove
 
 - name: Configure guest network adapter
-  vmware_guest_network:
+  community.vmware.vmware_guest_network:
     moid: "{{ item.instance.moid }}"
     datacenter: "{{ provision_vmware_datacenter }}"
-    cluster: "{{ provision_vmware_cluster | default (omit) }}"
-    esxi_hostname: "{{ provision_vmware_esxi_hostname | default (omit) }}"
-    networks:
-      - state: new
-        name: "{{ provision_vmware_primary_network }}"
-        dvswitch_name: "{{ provision_vmware_primary_network_dvswitch_name }}"
-        device_type: vmxnet3
-        connected: true
-        start_connected: true
-    validate_certs: no
+    cluster: "{{ provision_vmware_cluster | default(omit) }}"
+    esxi_hostname: "{{ provision_vmware_esxi_hostname | default(omit) }}"
+    state: 'present'
+    network_name: "{{ provision_vmware_primary_network }}"
+    switch: "{{ provision_vmware_primary_network_dvswitch_name }}"
+    device_type: vmxnet3
+    connected: true
+    start_connected: true
+    validate_certs: false
   delegate_to: localhost
   with_items: "{{ clone.results }}"
   async: 300
@@ -45,7 +48,7 @@
   register: network_add_async
 
 - name: Wait until network configuration completes
-  async_status:
+  ansible.builtin.async_status:
     jid: "{{ item.ansible_job_id }}"
   with_items: "{{ network_add_async.results }}"
   until: network_add.finished

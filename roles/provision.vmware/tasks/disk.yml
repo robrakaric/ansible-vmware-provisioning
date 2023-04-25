@@ -1,33 +1,35 @@
 ---
 - name: Create Configuration for OS Disk
-  set_fact:
+  ansible.builtin.set_fact:
     provision_disks:
-    - size_gb: "{{ provision_os_disk_size }}"
-      label: 'OS'
-      state: 'present'
-      datastore: "{{ provision_vmware_os_disk_datastore }}"
-      type: 'thin'
-      scsi_controller: 0
-      unit_number: 0
-      scsi_type: 'paravirtual'
+      - size_gb: "{{ provision_os_disk_size }}"
+        label: 'OS'
+        state: 'present'
+        datastore: "{{ provision_vmware_os_disk_datastore }}"
+        type: 'thin'
+        scsi_controller: 0
+        unit_number: 0
+        scsi_type: 'paravirtual'
 
 - name: Create Configuration for Extra Disk(s)
-  set_fact:
-    provision_disks: "{{ provision_disks + 
-    [{'size_gb': item ,
-    'state': 'present',
-    'datastore': provision_vmware_os_disk_datastore,
-    'type': 'thin',
-    'scsi_controller': 1,
-    'unit_number': ansible_loop.index0,
-    'scsi_type': 'paravirtual'}] }}"
+  ansible.builtin.set_fact:
+    # Linter is mad here, but leave this as-is for readability.
+    provision_disks:
+      "{{ provision_disks +
+      [{'size_gb': item ,
+      'state': 'present',
+      'datastore': provision_vmware_os_disk_datastore,
+      'type': 'thin',
+      'scsi_controller': 1,
+      'unit_number': ansible_loop.index0,
+      'scsi_type': 'paravirtual'}] }}"
   with_items: "{{ provision_extra_disks }}"
   loop_control:
-    extended: yes
+    extended: true
   when: (provision_extra_disks is defined) and (provision_extra_disks[0]|length > 0)
 
 - name: Configure Virtual Machine Disk(s)
-  vmware_guest_disk:
+  community.vmware.vmware_guest_disk:
     uuid: "{{ item.instance.instance_uuid }}"
     use_instance_uuid: 'yes'
     disk: "{{ provision_disks }}"
@@ -39,7 +41,7 @@
   register: disk_async
 
 - name: Wait Until Disk Provisioning Completes
-  async_status:
+  ansible.builtin.async_status:
     jid: "{{ item.ansible_job_id }}"
   with_items: "{{ disk_async.results }}"
   until: disk.finished
