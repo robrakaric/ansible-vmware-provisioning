@@ -1,6 +1,6 @@
 ---
 - name: Gather General Facts
-  vmware_guest_facts:
+  community.vmware.vmware_guest_facts:
     uuid: "{{ item.instance.instance_uuid }}"
     use_instance_uuid: 'yes'
     datacenter: "{{ provision_vmware_datacenter }}"
@@ -11,7 +11,7 @@
   register: facts_general_async
 
 - name: Wait Until General Facts Are Gathered
-  async_status:
+  ansible.builtin.async_status:
     jid: "{{ item.ansible_job_id }}"
   with_items: "{{ facts_general_async.results }}"
   until: facts_general.finished
@@ -20,8 +20,7 @@
   register: facts_general
 
 - name: Gather Storage Facts
-  vmware_guest_disk_facts:
-
+  community.vmware.vmware_guest_disk_facts:
     uuid: "{{ item.instance.instance_uuid }}"
     use_instance_uuid: 'yes'
     datacenter: "{{ provision_vmware_datacenter }}"
@@ -33,7 +32,7 @@
   register: facts_storage_async
 
 - name: Wait Until Storage Facts Are Gathered
-  async_status:
+  ansible.builtin.async_status:
     jid: "{{ item.ansible_job_id }}"
   with_items: "{{ facts_storage_async.results }}"
   until: facts_storage.finished
@@ -42,7 +41,7 @@
   register: facts_storage
 
 - name: Set Stats
-  set_stats:
+  ansible.builtin.set_stats:
     data:
       provision_results:
         vmware:
